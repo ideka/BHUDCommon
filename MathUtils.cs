@@ -13,10 +13,12 @@ namespace Ideka.BHUDCommon
         public const double AngleToDeg = 180;
         public const double DegToAngle = 1 / AngleToDeg;
 
-        public const double MetersToInches = 39.3700787;
-        public const double InchesToMeters = 1 / MetersToInches;
+        public const float MetersToInches = 39.3700787f;
+        public const float InchesToMeters = 1 / MetersToInches;
 
         public static double Squared(double x) => x * x;
+        public static double Cubed(double x) => x * x * x;
+        public static double Biquadrated(double x) => x * x * x * x;
 
         public static double Clamp(double x, double min, double max)
             => Math.Min(Math.Max(x, min), max);
