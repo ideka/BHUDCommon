@@ -8,6 +8,8 @@ namespace Ideka.BHUDCommon
     {
         private readonly SettingEntry<string> _string;
 
+        public double Percentage => MathUtils.InverseLerp(Value, _minValue, _maxValue, true);
+
         private readonly int _minValue;
         private readonly int _maxValue;
 
