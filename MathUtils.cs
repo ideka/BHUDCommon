@@ -27,5 +27,12 @@ namespace Ideka.BHUDCommon
 
         public static double InverseLerp(double x, double min, double max, bool clamp = false)
             => ((clamp ? Clamp(x, min, max) : x) - min) / (max - min);
+
+        public static double Lerp(double x, double min, double max, bool clamp = false)
+            => min + (max - min) * (clamp ? Clamp01(x) : x);
+
+        public static double Scale(double x, double sourceMin, double sourceMax, double targetMin, double targetMax,
+            bool clamp = false)
+            => Lerp(InverseLerp(x, sourceMin, sourceMax), targetMin, targetMax, clamp);
     }
 }
