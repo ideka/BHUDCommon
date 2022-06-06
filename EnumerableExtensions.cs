@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ideka.BHUDCommon
 {
     internal static class EnumerableExtensions
     {
+        public static IEnumerable<(TA, TB)> Zip<TA, TB>(this IEnumerable<TA> source, IEnumerable<TB> other)
+            => source.Zip(other, (a, b) => (a, b));
+
         public static TSource MaxBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.MaxBy(selector, null);
 
