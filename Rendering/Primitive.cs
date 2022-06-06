@@ -44,23 +44,30 @@ namespace Ideka.BHUDCommon
                     (v.X / v.Z + 1) / 2 * Graphics.SpriteScreen.Width,
                     (1 - v.Y / v.Z) / 2 * Graphics.SpriteScreen.Height);
 
-        public static Vector2 ToScreen(Matrix world)
-            => Flatten(Vector3.Transform(Vector3.Zero, world * Gw2Mumble.PlayerCamera.WorldViewProjection));
-
         public static Vector2 ToScreen(Vector3 point)
-            => ToScreen(Matrix.CreateTranslation(point));
+            => Flatten(Vector3.Transform(point, Gw2Mumble.PlayerCamera.WorldViewProjection));
 
         public static Primitive HorizontalCircle(float radius, int sides)
         {
-            const double max = 2.0 * Math.PI;
+            var points2d = SpriteBatchExtensions.CreateCircle(radius, sides);
             var points = new Vector3[sides];
-            var step = max / sides;
-            var theta = 0.0;
-
             for (var i = 0; i < sides; i++)
             {
-                points[i] = new Vector3((float)(radius * Math.Cos(theta)), (float)(radius * Math.Sin(theta)), 0);
-                theta += step;
+                var src = points2d[i];
+                points[i] = new Vector3(src.X, src.Y, 0);
+            }
+
+            return new Primitive(points);
+        }
+
+        public static Primitive VerticalArc(float rx, float ry, float start, float extents, int sides)
+        {
+            var points2d = SpriteBatchExtensions.CreateArc(rx, ry, start, extents, sides);
+            var points = new Vector3[sides];
+            for (var i = 0; i < sides; i++)
+            {
+                var src = points2d[i];
+                points[i] = new Vector3(src.X, 0, src.Y);
             }
 
             return new Primitive(points);

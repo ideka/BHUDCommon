@@ -119,5 +119,11 @@ namespace Ideka.BHUDCommon
 
             return points;
         }
+
+        public static Vector2[] CreateEllipsis(float rx, float ry, int sides)
+            => CreateArc(rx, ry, 0, 2, sides);
+
+        public static Vector2[] CreateCircle(float radius, int sides)
+            => CreateEllipsis(radius, radius, sides);
     }
 }
