@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Gw2Sharp.Models;
+using Microsoft.Xna.Framework;
 using System;
 using static Blish_HUD.GameService;
 
@@ -37,5 +38,7 @@ namespace Ideka.BHUDCommon
                 Gw2Mumble.UI.CompassSize.Height + offsetHeight);
         }
 
+        public static Vector2 ToXnaVector2(this Coordinates2 coords)
+            => new Vector2((float)coords.X, (float)coords.Y);
     }
 }
