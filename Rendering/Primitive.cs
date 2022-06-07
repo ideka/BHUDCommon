@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
 using static Blish_HUD.GameService;
@@ -11,7 +12,7 @@ namespace Ideka.BHUDCommon
 
         public class ScreenPrimitive
         {
-            public List<Vector2> Points { get; } = new List<Vector2>();
+            public List<List<Vector2>> Points { get; } = new List<List<Vector2>>();
             public float Depth { get; }
             private float MaxDepth => Gw2Mumble.PlayerCamera.FarPlaneRenderDistance;
 
@@ -19,21 +20,33 @@ namespace Ideka.BHUDCommon
             {
                 float sum = 0;
                 int count = 0;
+                List<Vector2> list = null;
                 foreach (var point in points)
                 {
-                    // Don't draw stuff "behind the camera"
-                    if (point.Z < 0)
+                    if (list == null)
                     {
-                        Points.Clear();
-                        return;
+                        list = new List<Vector2>();
+                        Points.Add(list);
                     }
 
-                    Points.Add(Flatten(point));
+                    if (point.Z < 0)
+                    {
+                        list = null;
+                        continue;
+                    }
+
+                    list.Add(Flatten(point));
                     sum += point.Z;
                     count++;
                 }
 
                 Depth = sum / count / MaxDepth;
+            }
+
+            public void Draw(SpriteBatch spriteBatch, Color color, float thickness)
+            {
+                foreach (var list in Points)
+                    spriteBatch.DrawPolygon(Vector2.Zero, list, color, thickness, Depth, true);
             }
 
             public static Vector2 Flatten(Vector3 v)
