@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Blish_HUD;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using System;
@@ -9,6 +10,18 @@ namespace Ideka.BHUDCommon
 {
     internal static class SpriteBatchExtensions
     {
+        public static SpriteBatchParameters Clone(this SpriteBatchParameters sbp)
+            => new SpriteBatchParameters()
+            {
+                SortMode = sbp.SortMode,
+                BlendState = sbp.BlendState,
+                SamplerState = sbp.SamplerState,
+                DepthStencilState = sbp.DepthStencilState,
+                RasterizerState = sbp.RasterizerState,
+                Effect = sbp.Effect,
+                TransformMatrix = sbp.TransformMatrix,
+            };
+
         private static Texture2D _whitePixelTexture;
 
         private static Texture2D GetTexture(SpriteBatch spriteBatch)
