@@ -20,6 +20,8 @@ namespace Ideka.BHUDCommon
         public static double Cubed(double x) => x * x * x;
         public static double Biquadrated(double x) => x * x * x * x;
 
+        public static float Squared(float x) => x * x;
+
         public static double Clamp(double x, double min, double max)
             => Math.Min(Math.Max(x, min), max);
 
