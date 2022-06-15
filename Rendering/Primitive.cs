@@ -73,6 +73,9 @@ namespace Ideka.BHUDCommon
         public Primitive Transformed(Matrix matrix)
             => new Primitive(Transform(matrix));
 
+        public IEnumerable<Vector2> Flat()
+            => Points.Select(p => p.ToVector2());
+
         public ScreenPrimitive ToScreen()
             => new ScreenPrimitive(Points.Select(ToScreen));
 
