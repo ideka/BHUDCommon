@@ -6,6 +6,44 @@ using static Blish_HUD.GameService;
 
 namespace Ideka.BHUDCommon
 {
+    public static class PrimitiveExtensions
+    {
+        private static bool _requested = false;
+        private static BasicEffect _effect;
+        private static BasicEffect Effect
+        {
+            get
+            {
+                if (_effect == null && !_requested)
+                {
+                    _requested = true;
+                    Graphics.QueueMainThreadRender(graphicsDevice =>
+                    {
+                        if (_requested && _effect == null)
+                        {
+                            _requested = false;
+                            _effect = new BasicEffect(graphicsDevice);
+                        }
+                    });
+                }
+
+                return _effect;
+            }
+        }
+
+        public static void DrawPrimitive(this SpriteBatch spriteBatch, Primitive primitive, Color color)
+        {
+            if (Effect == null)
+                return;
+
+            var vertices = primitive.Points.Select(p => new VertexPositionColor(p, color)).ToArray();
+
+            Effect.Projection = Gw2Mumble.PlayerCamera.WorldViewProjection;
+            _effect.CurrentTechnique.Passes[0].Apply();
+            spriteBatch.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineStrip, vertices, 0, vertices.Length - 1);
+        }
+    }
+
     public class Primitive
     {
         public List<Vector3> Points { get; }
