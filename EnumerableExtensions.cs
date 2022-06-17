@@ -6,6 +6,9 @@ namespace Ideka.BHUDCommon
 {
     internal static class EnumerableExtensions
     {
+        public static IEnumerable<(int, T)> Enumerate<T>(this IEnumerable<T> source)
+            => source.Select((t, i) => (i, t));
+
         public static IEnumerable<(TA, TB)> Zip<TA, TB>(this IEnumerable<TA> source, IEnumerable<TB> other)
             => source.Zip(other, (a, b) => (a, b));
 
