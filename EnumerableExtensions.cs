@@ -9,6 +9,9 @@ namespace Ideka.BHUDCommon
         public static IEnumerable<(int, T)> Enumerate<T>(this IEnumerable<T> source)
             => source.Select((t, i) => (i, t));
 
+        public static IEnumerable<(T, T)> By2<T>(this IEnumerable<T> source)
+            => source.Zip(source.Skip(1));
+
         public static IEnumerable<(TA, TB)> Zip<TA, TB>(this IEnumerable<TA> source, IEnumerable<TB> other)
             => source.Zip(other, (a, b) => (a, b));
 
@@ -31,7 +34,7 @@ namespace Ideka.BHUDCommon
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (selector == null) throw new ArgumentNullException(nameof(selector));
-            comparer = comparer ?? Comparer<TKey>.Default;
+            comparer ??= Comparer<TKey>.Default;
             int factor = max ? -1 : 1;
 
             using (var sourceIterator = source.GetEnumerator())

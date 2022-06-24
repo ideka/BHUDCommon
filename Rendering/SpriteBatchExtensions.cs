@@ -65,7 +65,7 @@ namespace Ideka.BHUDCommon
 
             var texture = GetTexture(spriteBatch);
 
-            foreach (var (point, next) in points.Zip(points.Skip(1), (a, b) => (a, b)))
+            foreach (var (point, next) in points.By2())
                 DrawPolygonEdge(spriteBatch, texture, point + offset, next + offset, color, thickness, layerDepth);
 
             if (!open)
