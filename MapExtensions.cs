@@ -1,4 +1,5 @@
 ﻿using Gw2Sharp.WebApi.V2.Models;
+using Ideka.NetCommon;
 using Microsoft.Xna.Framework;
 
 namespace Ideka.BHUDCommon
