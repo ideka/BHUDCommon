@@ -4,7 +4,7 @@ using System;
 
 namespace Ideka.BHUDCommon
 {
-    internal static class SettingCollectionExtensions
+    public static class SettingCollectionExtensions
     {
         public static GenericSetting<T> Generic<T>(this SettingCollection settings, string key,
             T defaultValue, Func<string> displayNameFunc = null, Func<string> descriptionFunc = null)

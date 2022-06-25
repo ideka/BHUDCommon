@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Ideka.BHUDCommon
 {
-    internal static class SpriteBatchExtensions
+    public static class SpriteBatchExtensions
     {
         public static SpriteBatchParameters Clone(this SpriteBatchParameters sbp)
             => new SpriteBatchParameters()
