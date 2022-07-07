@@ -107,7 +107,7 @@ namespace Ideka.BHUDCommon
         public static void DrawArc(this SpriteBatch spriteBatch, Vector2 center,
             float rx, float ry, double start, double extents, int sides,
             Color color, float thickness = 1f, float layerDepth = 0)
-        { 
+        {
             extents = double.IsNaN(extents) ? 0
                 : double.IsInfinity(extents) ? 2
                 : extents;

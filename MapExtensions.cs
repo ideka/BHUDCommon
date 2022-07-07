@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace Ideka.BHUDCommon
 {
-    public static class MapExtensions 
+    public static class MapExtensions
     {
         public static Vector2 WorldInchesToMap(this Map map, Vector3 world)
             => new Vector2(
