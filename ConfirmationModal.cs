@@ -3,6 +3,7 @@ using Blish_HUD.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Threading.Tasks;
 
 namespace Ideka.BHUDCommon
 {
@@ -33,8 +34,9 @@ namespace Ideka.BHUDCommon
         private readonly StandardButton _confirmButton;
         private readonly StandardButton _cancelButton;
 
+        private TaskCompletionSource<bool> _buttonClick;
         private Action _confirmed;
-        private Action _cancelled;
+        private Action _canceled;
 
         public ConfirmationModal(Texture2D background) : base()
         {
@@ -64,19 +66,20 @@ namespace Ideka.BHUDCommon
             _confirmButton = new StandardButton() { Parent = this };
             _cancelButton = new StandardButton() { Parent = this };
 
-            _confirmButton.Click += delegate { Hide(); _confirmed?.Invoke(); };
-            _cancelButton.Click += delegate { Hide(); _cancelled?.Invoke(); };
+            _confirmButton.Click += delegate { Hide(); _confirmed?.Invoke(); _buttonClick.SetResult(true); };
+            _cancelButton.Click += delegate { Hide(); _canceled?.Invoke(); _buttonClick.SetResult(false); };
         }
 
-        public void Show(string title, string text, string confirm, string cancel, Action confirmed,
-            Action cancelled = null)
+        public void Show(string title, string text, string confirm, string cancel, Action confirmed = null,
+            Action canceled = null)
         {
             Parent = GameService.Graphics.SpriteScreen;
             Location = Point.Zero;
             Size = Parent.Size;
 
+            _buttonClick = new TaskCompletionSource<bool>();
             _confirmed = confirmed;
-            _cancelled = cancelled;
+            _canceled = canceled;
 
             ModalWidth = 300;
 
@@ -104,11 +107,25 @@ namespace Ideka.BHUDCommon
             Show();
         }
 
+        public async Task<bool> ShowAsync(string title, string text, string confirm, string cancel)
+        {
+            Show(title, text, confirm, cancel);
+
+            try
+            {
+                return await _buttonClick.Task;
+            }
+            catch (TaskCanceledException)
+            {
+                return false;
+            }
+        }
+
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds)
         {
-            base.PaintBeforeChildren(spriteBatch, bounds);
-
             spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, bounds, Color.Black * .3f);
+
+            base.PaintBeforeChildren(spriteBatch, bounds);
         }
 
         protected override void DisposeControl()
