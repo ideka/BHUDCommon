@@ -1,7 +1,9 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Threading.Tasks;
 
@@ -28,11 +30,12 @@ namespace Ideka.BHUDCommon
             }
         }
 
+        private readonly EscBlockWindow _escBlock;
         private readonly Image _background;
         private readonly Label _titleLabel;
         private readonly Label _textLabel;
         private readonly StandardButton _confirmButton;
-        private readonly StandardButton _cancelButton;
+        private readonly KeyboundButton _cancelButton;
 
         private TaskCompletionSource<bool> _buttonClick;
         private Action _confirmed;
@@ -42,6 +45,8 @@ namespace Ideka.BHUDCommon
         {
             Visible = false;
             ZIndex = int.MaxValue / 10;
+
+            _escBlock = new EscBlockWindow(this);
 
             _background = new Image(background)
             {
@@ -64,10 +69,33 @@ namespace Ideka.BHUDCommon
             };
 
             _confirmButton = new StandardButton() { Parent = this };
-            _cancelButton = new StandardButton() { Parent = this };
+            _cancelButton = new KeyboundButton(new KeyBinding(Keys.Escape))
+            {
+                Parent = this,
+                KeybindEnabled = false,
+            };
 
-            _confirmButton.Click += delegate { Hide(); _confirmed?.Invoke(); _buttonClick.SetResult(true); };
-            _cancelButton.Click += delegate { Hide(); _canceled?.Invoke(); _buttonClick.SetResult(false); };
+            {
+                void done(bool confirmed)
+                {
+                    Hide();
+
+                    try
+                    {
+                        if (confirmed)
+                            _confirmed?.Invoke();
+                        else
+                            _canceled?.Invoke();
+                    }
+                    finally
+                    {
+                        _buttonClick.SetResult(confirmed);
+                    }
+                }
+
+                _confirmButton.Click += delegate { done(true); };
+                _cancelButton.Click += delegate { done(false); };
+            }
         }
 
         public void Show(string title, string text, string confirm, string cancel, Action confirmed = null,
@@ -107,18 +135,24 @@ namespace Ideka.BHUDCommon
             Show();
         }
 
-        public async Task<bool> ShowAsync(string title, string text, string confirm, string cancel)
+        public Task<bool> ShowAsync(string title, string text, string confirm, string cancel)
         {
             Show(title, text, confirm, cancel);
+            return _buttonClick.Task;
+        }
 
-            try
-            {
-                return await _buttonClick.Task;
-            }
-            catch (TaskCanceledException)
-            {
-                return false;
-            }
+        public override void Show()
+        {
+            _escBlock.BlockStart();
+            _cancelButton.KeybindEnabled = true;
+            base.Show();
+        }
+
+        public override void Hide()
+        {
+            _escBlock.BlockEnd();
+            _cancelButton.KeybindEnabled = false;
+            base.Hide();
         }
 
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds)
@@ -131,6 +165,10 @@ namespace Ideka.BHUDCommon
         protected override void DisposeControl()
         {
             _background.Texture?.Dispose();
+
+            _escBlock?.Dispose();
+            _cancelButton?.Dispose();
+
             base.DisposeControl();
         }
     }
