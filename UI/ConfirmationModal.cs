@@ -13,6 +13,7 @@ namespace Ideka.BHUDCommon
     {
         private static readonly Point Margin = new Point(20, 15);
         private const int Spacing = 10;
+        private const int Border = 5;
 
         private Point _modalSize;
         public int ModalWidth { get => ModalSize.X; set => ModalSize = new Point(value, ModalSize.Y); }
@@ -31,6 +32,7 @@ namespace Ideka.BHUDCommon
         }
 
         private readonly EscBlockWindow _escBlock;
+        private readonly Image _border;
         private readonly Image _background;
         private readonly Label _titleLabel;
         private readonly Label _textLabel;
@@ -47,6 +49,13 @@ namespace Ideka.BHUDCommon
             ZIndex = int.MaxValue / 10;
 
             _escBlock = new EscBlockWindow(this);
+
+            _border = new Image()
+            {
+                Parent = this,
+                ClipsBounds = false,
+                BackgroundColor = new Color(Color.Black, .5f),
+            };
 
             _background = new Image(background)
             {
@@ -73,6 +82,7 @@ namespace Ideka.BHUDCommon
             {
                 Parent = this,
                 KeybindEnabled = false,
+                BasicTooltipText = null,
             };
 
             {
@@ -131,6 +141,8 @@ namespace Ideka.BHUDCommon
 
             _background.Location = Point.Zero - Margin;
             _background.Size = ModalSize + Margin + Margin;
+            _border.Location = _background.Location - new Point(Border);
+            _border.Size = _background.Size + new Point(Border * 2);
 
             Show();
         }
