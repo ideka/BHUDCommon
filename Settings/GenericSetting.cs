@@ -14,7 +14,7 @@ namespace Ideka.BHUDCommon
             set => Setting.Value = value;
         }
 
-        public Action _changed;
+        public Action<T> _changed;
 
         protected GenericSetting()
         {
@@ -32,14 +32,20 @@ namespace Ideka.BHUDCommon
             Setting.SettingChanged += SettingChanged;
         }
 
-        public void OnChanged(Action changed)
+        public void OnChanged(Action<T> changed)
         {
             _changed = changed;
         }
 
+        public void OnChangedAndNow(Action<T> changed)
+        {
+            _changed = changed;
+            changed(Value);
+        }
+
         protected virtual void SettingChanged(object sender, ValueChangedEventArgs<T> e)
         {
-            _changed?.Invoke();
+            _changed?.Invoke(Value);
         }
 
         public virtual void Dispose()
