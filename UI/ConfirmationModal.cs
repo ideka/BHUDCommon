@@ -115,7 +115,7 @@ namespace Ideka.BHUDCommon
             Location = Point.Zero;
             Size = Parent.Size;
 
-            _buttonClick = new TaskCompletionSource<bool>();
+            _buttonClick = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _confirmed = confirmed;
             _canceled = canceled;
 
