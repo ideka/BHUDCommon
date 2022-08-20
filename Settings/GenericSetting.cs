@@ -14,7 +14,7 @@ namespace Ideka.BHUDCommon
             set => Setting.Value = value;
         }
 
-        public Action<T> _changed;
+        private Action<T> _changed;
 
         protected GenericSetting()
         {
