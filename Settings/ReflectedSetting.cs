@@ -89,10 +89,18 @@ namespace Ideka.BHUDCommon
         protected override bool TryGetValue(string from, out T value)
         {
             dynamic val = _getValue(from);
-            bool hasValue = val != null;
-            value = hasValue ? val : default;
-            return hasValue;
+
+            // Must be done like this to avoid weird race condition errors
+            if (val is T concreteValue)
+            {
+                value = concreteValue;
+                return true;
+            }
+            else
+            {
+                value = default;
+                return false;
+            }
         }
     }
-
 }
