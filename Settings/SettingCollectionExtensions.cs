@@ -24,14 +24,14 @@ namespace Ideka.BHUDCommon
             float defaultPercentage, float minPercentage, float maxPercentage, Func<string> displayNameFunc = null,
             Func<string> descriptionFunc = null, Func<string, string, string> validationErrorFunc = null)
         {
-            string format(float p) => $"{p:P}";
+            static string format(float p) => $"{p:P}";
 
             var setting = new CustomReflectedSetting<float, float?>(settings, key, defaultPercentage, format, str =>
             {
                 if (!float.TryParse(str.TrimEnd('%'), out var raw))
                     return null;
                 float value = raw / 100f;
-                return value < minPercentage || value > maxPercentage ? (float?)null : value;
+                return value < minPercentage || value > maxPercentage ? null : value;
             }, displayNameFunc, descriptionFunc, ()
                 => validationErrorFunc?.Invoke(format(minPercentage), format(maxPercentage)));
 
