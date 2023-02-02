@@ -32,21 +32,19 @@ namespace Ideka.BHUDCommon
             Setting.SettingChanged += SettingChanged;
         }
 
-        public void OnChanged(Action<T> changed)
+        public IDisposable OnChanged(Action<T> changed)
         {
-            _changed = changed;
+            _changed += changed;
+            return new WhenDisposed(() => _changed -= changed);
         }
 
-        public void OnChangedAndNow(Action<T> changed)
+        public IDisposable OnChangedAndNow(Action<T> changed)
         {
-            _changed = changed;
             changed(Value);
+            return OnChanged(changed);
         }
 
-        protected virtual void SettingChanged(object sender, ValueChangedEventArgs<T> e)
-        {
-            _changed?.Invoke(Value);
-        }
+        protected virtual void SettingChanged(object sender, ValueChangedEventArgs<T> e) => _changed?.Invoke(Value);
 
         public virtual void Dispose()
         {

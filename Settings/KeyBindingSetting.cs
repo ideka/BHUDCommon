@@ -12,20 +12,17 @@ namespace Ideka.BHUDCommon
             string key, KeyBinding defaultValue, Func<string> displayNameFunc, Func<string> descriptionFunc)
         {
             Initialize(settings.DefineSetting(key, defaultValue, displayNameFunc, descriptionFunc));
-            Setting.Value.Enabled = false;
+            Setting.Value.Enabled = true;
             Setting.Value.Activated += Activated;
         }
 
-        public void OnActivated(Action action)
+        public IDisposable OnActivated(Action action)
         {
-            _action = action;
-            Setting.Value.Enabled = true;
+            _action += action;
+            return new WhenDisposed(() => _action -= action);
         }
 
-        private void Activated(object sender, EventArgs e)
-        {
-            _action?.Invoke();
-        }
+        private void Activated(object sender, EventArgs e) => _action?.Invoke();
 
         public override void Dispose()
         {
