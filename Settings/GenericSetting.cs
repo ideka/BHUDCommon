@@ -1,5 +1,6 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Settings;
+using Ideka.NetCommon;
 using System;
 
 namespace Ideka.BHUDCommon

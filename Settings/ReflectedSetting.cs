@@ -59,8 +59,8 @@ namespace Ideka.BHUDCommon
 
         public override void Dispose()
         {
-            base.Dispose();
             _string.SettingChanged -= StringChanged;
+            base.Dispose();
         }
     }
 
