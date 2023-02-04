@@ -1,33 +1,32 @@
 ﻿using Blish_HUD.Controls;
 using Blish_HUD.Input;
 
-namespace Ideka.BHUDCommon
+namespace Ideka.BHUDCommon;
+
+public class KeyboundButton : StandardButton
 {
-    public class KeyboundButton : StandardButton
+    private readonly KeyBinding _keybind;
+
+    public bool KeybindEnabled
     {
-        private readonly KeyBinding _keybind;
+        set => _keybind.Enabled = _keybind.BlockSequenceFromGw2 = value;
+    }
 
-        public bool KeybindEnabled
+    public KeyboundButton(KeyBinding keybind)
+    {
+        _keybind = keybind;
+        _keybind.Activated += delegate
         {
-            set => _keybind.Enabled = _keybind.BlockSequenceFromGw2 = value;
-        }
+            if (Enabled)
+                TriggerMouseEvent(MouseEventType.LeftMouseButtonReleased);
+        };
+        BasicTooltipText = _keybind.GetBindingDisplayText();
+        KeybindEnabled = true;
+    }
 
-        public KeyboundButton(KeyBinding keybind)
-        {
-            _keybind = keybind;
-            _keybind.Activated += delegate
-            {
-                if (Enabled)
-                    TriggerMouseEvent(MouseEventType.LeftMouseButtonReleased);
-            };
-            BasicTooltipText = _keybind.GetBindingDisplayText();
-            KeybindEnabled = true;
-        }
-
-        protected override void DisposeControl()
-        {
-            KeybindEnabled = false;
-            base.DisposeControl();
-        }
+    protected override void DisposeControl()
+    {
+        KeybindEnabled = false;
+        base.DisposeControl();
     }
 }

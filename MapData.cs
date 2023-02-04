@@ -11,151 +11,148 @@ using static Blish_HUD.GameService;
 using File = System.IO.File;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-#nullable enable
+namespace Ideka.BHUDCommon;
 
-namespace Ideka.BHUDCommon
+public class MapData : IDisposable
 {
-    public class MapData : IDisposable
+    private static readonly Logger Logger = Logger.GetLogger<MapData>();
+    private const int Retries = 3;
+
+    public Map? Current { get; private set; }
+
+    private readonly Dictionary<int, Map> _maps = new();
+    private readonly CancellationTokenSource _cts = new();
+
+    private class CacheFile
     {
-        private static readonly Logger Logger = Logger.GetLogger<MapData>();
-        private const int Retries = 3;
+        public int BuildId { get; set; }
+        public Dictionary<int, Map> Maps { get; set; } = new();
+    }
 
-        public Map? Current { get; private set; }
-
-        private readonly Dictionary<int, Map> _maps = new();
-        private readonly CancellationTokenSource _cts = new();
-
-        private class CacheFile
+    public MapData(string cacheFilePath)
+    {
+        CacheFile? cache = null;
+        if (File.Exists(cacheFilePath))
         {
-            public int BuildId { get; set; }
-            public Dictionary<int, Map> Maps { get; set; } = new();
-        }
-
-        public MapData(string cacheFilePath)
-        {
-            CacheFile? cache = null;
-            if (File.Exists(cacheFilePath))
+            Logger.Info("Found cache file, loading.");
+            try
             {
-                Logger.Info("Found cache file, loading.");
-                try
-                {
-                    cache = JsonSerializer.Deserialize<CacheFile>(File.ReadAllText(cacheFilePath));
-                    if (cache == null)
-                        Logger.Warn("Cache load resulted in null.");
-                }
-                catch (Exception e)
-                {
-                    Logger.Warn(e, "Exception when loading cache.");
-                }
+                cache = JsonSerializer.Deserialize<CacheFile>(File.ReadAllText(cacheFilePath));
+                if (cache == null)
+                    Logger.Warn("Cache load resulted in null.");
             }
-
-            _maps = cache?.Maps ?? new Dictionary<int, Map>();
-
-            _ = LoadMapData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
-            Gw2Mumble.CurrentMap.MapChanged += CurrentMapChanged;
-        }
-
-        public string Describe(int mapId)
-            => GetMap(mapId)?.Name ?? $"({mapId})";
-
-        public Map? GetMap(int id)
-        {
-            lock (_maps)
+            catch (Exception e)
             {
-                return _maps.TryGetValue(id, out var map) ? map : null;
+                Logger.Warn(e, "Exception when loading cache.");
             }
         }
 
-        public Vector2 WorldToScreenMap(Vector3 worldMeters)
-            => WorldToScreenMap(Gw2Mumble.CurrentMap.Id, worldMeters);
+        _maps = cache?.Maps ?? new Dictionary<int, Map>();
 
-        public Vector2 WorldToScreenMap(int mapId, Vector3 worldMeters)
-            => WorldToScreenMap(mapId, worldMeters, ScreenMap.Data.MapCenter, ScreenMap.Data.Scale, ScreenMap.Data.MapRotation, ScreenMap.Data.BoundsCenter);
+        _ = LoadMapData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
+        Gw2Mumble.CurrentMap.MapChanged += CurrentMapChanged;
+    }
 
-        public Vector2 WorldToScreenMap(int mapId, Vector3 worldMeters, Vector2 mapCenter, float scale, Matrix rotation, Vector2 boundsCenter)
-            => GetMap(mapId) is Map map
-                ? MapToScreenMap(map.WorldMetersToMap(worldMeters), mapCenter, scale, rotation, boundsCenter)
-                : Vector2.Zero;
+    public string Describe(int mapId)
+        => GetMap(mapId)?.Name ?? $"({mapId})";
 
-        public static Vector2 MapToScreenMap(Vector2 mapCoords)
-            => MapToScreenMap(mapCoords, ScreenMap.Data.MapCenter, ScreenMap.Data.Scale, ScreenMap.Data.MapRotation, ScreenMap.Data.BoundsCenter);
-
-        public static Vector2 MapToScreenMap(Vector2 mapCoords, Vector2 mapCenter, float scale, Matrix rotation, Vector2 boundsCenter)
-            => Vector2.Transform((mapCoords - mapCenter) * scale, rotation) + boundsCenter;
-
-        private async Task LoadMapData(int cachedVersion, string cacheFilePath, CancellationToken ct)
+    public Map? GetMap(int id)
+    {
+        lock (_maps)
         {
-            for (int i = 0; i < 30; i++)
-            {
-                if (Gw2Mumble.Info.BuildId != 0)
-                    break;
+            return _maps.TryGetValue(id, out var map) ? map : null;
+        }
+    }
 
-                Logger.Warn("Waiting for mumble to update map data...");
-                await Task.Delay(1000);
-            }
+    public Vector2 WorldToScreenMap(Vector3 worldMeters)
+        => WorldToScreenMap(Gw2Mumble.CurrentMap.Id, worldMeters);
 
-            if (Gw2Mumble.Info.BuildId == cachedVersion)
-            {
-                UpdateCurrent();
-                return;
-            }
+    public Vector2 WorldToScreenMap(int mapId, Vector3 worldMeters)
+        => WorldToScreenMap(mapId, worldMeters, ScreenMap.Data.MapCenter, ScreenMap.Data.Scale, ScreenMap.Data.MapRotation, ScreenMap.Data.BoundsCenter);
 
-            IEnumerable<Map>? maps = null;
+    public Vector2 WorldToScreenMap(int mapId, Vector3 worldMeters, Vector2 mapCenter, float scale, Matrix rotation, Vector2 boundsCenter)
+        => GetMap(mapId) is Map map
+            ? MapToScreenMap(map.WorldMetersToMap(worldMeters), mapCenter, scale, rotation, boundsCenter)
+            : Vector2.Zero;
 
-            for (int i = 0; i < Retries; i++)
-            {
-                try
-                {
-                    var maps2 = await Gw2WebApi.AnonymousConnection.Client.V2.Maps.AllAsync(ct);
-                    maps = maps2;
-                    break;
-                }
-                catch (Exception e)
-                {
-                    if (i < Retries)
-                    {
-                        Logger.Warn(e, "Failed to pull map data from the Gw2 API. Trying again in 30 seconds.");
-                        await Task.Delay(30000);
-                    }
-                }
-            }
+    public static Vector2 MapToScreenMap(Vector2 mapCoords)
+        => MapToScreenMap(mapCoords, ScreenMap.Data.MapCenter, ScreenMap.Data.Scale, ScreenMap.Data.MapRotation, ScreenMap.Data.BoundsCenter);
 
-            if (maps == null)
-            {
-                Logger.Warn("Max retries exeeded. Skipping map data update.");
-                return;  // We failed to load any map data.
-            }
+    public static Vector2 MapToScreenMap(Vector2 mapCoords, Vector2 mapCenter, float scale, Matrix rotation, Vector2 boundsCenter)
+        => Vector2.Transform((mapCoords - mapCenter) * scale, rotation) + boundsCenter;
 
-            lock (_maps)
-            {
-                foreach (var map in maps)
-                    _maps[map.Id] = map;
-            }
+    private async Task LoadMapData(int cachedVersion, string cacheFilePath, CancellationToken ct)
+    {
+        for (int i = 0; i < 30; i++)
+        {
+            if (Gw2Mumble.Info.BuildId != 0)
+                break;
 
-            Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
-            File.WriteAllText(cacheFilePath, JsonConvert.SerializeObject(new CacheFile()
-            {
-                BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : cachedVersion,
-                Maps = _maps,
-            }));
+            Logger.Warn("Waiting for mumble to update map data...");
+            await Task.Delay(1000);
+        }
 
+        if (Gw2Mumble.Info.BuildId == cachedVersion)
+        {
             UpdateCurrent();
+            return;
         }
 
-        private void UpdateCurrent()
+        IEnumerable<Map>? maps = null;
+
+        for (int i = 0; i < Retries; i++)
         {
-            lock (_maps)
+            try
             {
-                Current = _maps.TryGetValue(Gw2Mumble.CurrentMap.Id, out var map) ? map : null;
+                var maps2 = await Gw2WebApi.AnonymousConnection.Client.V2.Maps.AllAsync(ct);
+                maps = maps2;
+                break;
+            }
+            catch (Exception e)
+            {
+                if (i < Retries)
+                {
+                    Logger.Warn(e, "Failed to pull map data from the Gw2 API. Trying again in 30 seconds.");
+                    await Task.Delay(30000);
+                }
             }
         }
 
-        private void CurrentMapChanged(object sender, ValueEventArgs<int> e) => UpdateCurrent();
-
-        public void Dispose()
+        if (maps == null)
         {
-            Gw2Mumble.CurrentMap.MapChanged -= CurrentMapChanged;
-            _cts?.Cancel();
+            Logger.Warn("Max retries exeeded. Skipping map data update.");
+            return;  // We failed to load any map data.
         }
+
+        lock (_maps)
+        {
+            foreach (var map in maps)
+                _maps[map.Id] = map;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
+        File.WriteAllText(cacheFilePath, JsonConvert.SerializeObject(new CacheFile()
+        {
+            BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : cachedVersion,
+            Maps = _maps,
+        }));
+
+        UpdateCurrent();
+    }
+
+    private void UpdateCurrent()
+    {
+        lock (_maps)
+        {
+            Current = _maps.TryGetValue(Gw2Mumble.CurrentMap.Id, out var map) ? map : null;
+        }
+    }
+
+    private void CurrentMapChanged(object sender, ValueEventArgs<int> e) => UpdateCurrent();
+
+    public void Dispose()
+    {
+        Gw2Mumble.CurrentMap.MapChanged -= CurrentMapChanged;
+        _cts?.Cancel();
     }
 }

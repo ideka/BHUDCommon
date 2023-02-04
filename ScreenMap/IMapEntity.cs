@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace Ideka.BHUDCommon
+namespace Ideka.BHUDCommon;
+
+public interface IMapEntity
 {
-    public interface IMapEntity
-    {
-        void DrawToMap(SpriteBatch spriteBatch, IMapBounds map);
-    }
+    void DrawToMap(SpriteBatch spriteBatch, IMapBounds map);
 }
