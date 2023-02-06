@@ -8,6 +8,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <RandomGuid>$([System.Guid]::NewGuid())</RandomGuid>
+    <AssemblyName>$(RandomGuid)</AssemblyName>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove="COPYING" />
