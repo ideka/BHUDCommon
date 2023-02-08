@@ -178,8 +178,6 @@ public class ConfirmationModal : Container
 
     protected override void DisposeControl()
     {
-        _background.Texture?.Dispose();
-
         _escBlock?.Dispose();
         _cancelButton?.Dispose();
 
