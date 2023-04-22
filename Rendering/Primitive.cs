@@ -21,8 +21,8 @@ public static class PrimitiveExtensions
                 {
                     if (_requested && _effect == null)
                     {
-                        _requested = false;
                         _effect = new BasicEffect(graphicsDevice);
+                        _requested = false;
                     }
                 });
             }
