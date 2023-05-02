@@ -1,16 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\Local.props" Condition="Exists('..\Local.props')"/>
+
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Ideka.BHUDCommon</RootNamespace>
     <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(NoRandomize)' != 'True'">
-    <RandomGuid>$([System.Guid]::NewGuid())</RandomGuid>
-    <AssemblyName>$(RandomGuid)</AssemblyName>
+    <AssemblyName>$(CommonPrefix)BHUDCommon</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
