@@ -15,7 +15,7 @@ public class MapData : ApiCache<int, Map>
 
     public Map? Current { get; private set; }
 
-    public MapData(string cacheFilePath) : base(cacheFilePath)
+    public MapData()
     {
         Gw2Mumble.CurrentMap.MapChanged += CurrentMapChanged;
     }
@@ -24,12 +24,7 @@ public class MapData : ApiCache<int, Map>
         => GetMap(mapId)?.Name ?? $"({mapId})";
 
     public Map? GetMap(int id)
-    {
-        lock (_lock)
-        {
-            return Data.TryGetValue(id, out var map) ? map : null;
-        }
-    }
+        => Items.TryGetValue(id, out var map) ? map : null;
 
     public Vector2 WorldToScreenMap(Vector3 worldMeters)
         => WorldToScreenMap(Gw2Mumble.CurrentMap.Id, worldMeters);
@@ -58,12 +53,7 @@ public class MapData : ApiCache<int, Map>
     }
 
     private void UpdateCurrent()
-    {
-        lock (_lock)
-        {
-            Current = Data.TryGetValue(Gw2Mumble.CurrentMap.Id, out var map) ? map : null;
-        }
-    }
+        => Current = Items.TryGetValue(Gw2Mumble.CurrentMap.Id, out var map) ? map : null;
 
     private void CurrentMapChanged(object sender, ValueEventArgs<int> e) => UpdateCurrent();
 

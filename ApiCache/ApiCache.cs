@@ -1,9 +1,11 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Modules.Managers;
 using Gw2Sharp.WebApi.V2.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static Blish_HUD.GameService;
@@ -19,12 +21,10 @@ public abstract class ApiCache<TId, TItem> : IDisposable
 
     private const int Retries = 3;
 
-    private readonly Dictionary<TId, TItem> _data = new();
-    protected IReadOnlyDictionary<TId, TItem> Data => _data;
+    private Dictionary<TId, TItem> _items = new();
+    public IReadOnlyDictionary<TId, TItem> Items => _items;
 
     private readonly CancellationTokenSource _cts = new();
-
-    protected readonly object _lock = new object();
 
     private class CacheFile
     {
@@ -32,8 +32,16 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         public Dictionary<TId, TItem> Data { get; set; } = new();
     }
 
-    public ApiCache(string cacheFilePath)
+    public async Task StartLoad(string cacheFilePath, ContentsManager? contentsManager, string? builtinFilePath)
     {
+        if (!File.Exists(cacheFilePath) && contentsManager != null && builtinFilePath != null)
+        {
+            using var file = contentsManager.GetFileStream(builtinFilePath);
+            using var reader = new StreamReader(file);
+            Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
+            File.WriteAllText(cacheFilePath, await reader.ReadToEndAsync());
+        }
+
         CacheFile? cache = null;
         if (File.Exists(cacheFilePath))
         {
@@ -50,8 +58,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             }
         }
 
-        _data = cache?.Data ?? new Dictionary<TId, TItem>();
-
+        _items = cache?.Data ?? new();
         _ = LoadData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
     }
 
@@ -71,14 +78,13 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         if (Gw2Mumble.Info.BuildId == cachedVersion)
             return;
 
-        IEnumerable<TItem>? list = null;
+        IEnumerable<TItem>? items = null;
 
         for (int i = 0; i < Retries; i++)
         {
             try
             {
-                var list2 = await ApiGetter(ct);
-                list = list2;
+                items = await ApiGetter(ct);
                 break;
             }
             catch (Exception e)
@@ -91,23 +97,19 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             }
         }
 
-        if (list == null)
+        if (items == null)
         {
             Logger.Warn($"Max retries exeeded. Skipping {typeof(TItem).FullName} data update.");
             return;  // We failed to load data.
         }
 
-        lock (_lock)
-        {
-            foreach (var item in list)
-                _data[item.Id] = item;
-        }
+        _items = items.ToDictionary(i => i.Id);
 
         Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
         File.WriteAllText(cacheFilePath, JsonConvert.SerializeObject(new CacheFile()
         {
             BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : cachedVersion,
-            Data = _data,
+            Data = _items,
         }));
     }
 

@@ -1,5 +1,4 @@
 ﻿using Blish_HUD;
-using Ideka.NetCommon;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,29 +15,24 @@ public class DyeData : ApiCache<int, Dye>
     private static readonly Logger _logger = Logger.GetLogger<DyeData>();
     protected override Logger Logger => _logger;
 
-    public DyeData(string cacheFilePath) : base(cacheFilePath)
+    public IEnumerable<(int diff, Dye dye)> BestMatches(Color color)
     {
-    }
+        static int min(int a, int b, int c, int d)
+            => Math.Min(a, Math.Min(b, Math.Min(c, d)));
 
-    public IEnumerable<Dye>? BestMatch(Color color)
-    {
-        lock (_lock)
-        {
-            if (!Data.Any())
-                return null;
+        static int colorDiff(Color color, IReadOnlyList<int> other)
+            => Math.Abs(color.R - other[0]) + Math.Abs(color.G - other[1]) + Math.Abs(color.B - other[2]);
 
-            return Data.Values
-                .Select(x => (
-                    diff:
-                        Math.Abs(color.R - x.Cloth.Rgb[0]) +
-                        Math.Abs(color.G - x.Cloth.Rgb[1]) +
-                        Math.Abs(color.B - x.Cloth.Rgb[2]),
-                    dye: x))
-                .GroupBy(x => x.diff)
-                .OrderBy(x => x.First().diff)
-                .First()
-                .Select(x => x.dye);
-        }
+        return Items.Values
+            .Select(x => (
+                diff:
+                    min(
+                        colorDiff(color, x.Cloth.Rgb),
+                        colorDiff(color, x.Metal.Rgb),
+                        colorDiff(color, x.Leather.Rgb),
+                        colorDiff(color, x.Fur.Rgb)),
+                dye: x))
+            .OrderBy(x => x.diff);
     }
 
     protected override async Task<IEnumerable<Dye>> ApiGetter(CancellationToken ct)
