@@ -1,5 +1,4 @@
-﻿using Blish_HUD;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,9 +11,6 @@ namespace Ideka.BHUDCommon;
 
 public class DyeData : ApiCache<int, Dye>
 {
-    private static readonly Logger _logger = Logger.GetLogger<DyeData>();
-    protected override Logger Logger => _logger;
-
     public IEnumerable<(int diff, Dye dye)> BestMatches(Color color)
     {
         static int min(int a, int b, int c, int d)

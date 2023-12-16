@@ -1,5 +1,4 @@
-﻿using Blish_HUD;
-using Gw2Sharp.WebApi.Exceptions;
+﻿using Gw2Sharp.WebApi.Exceptions;
 using Gw2Sharp.WebApi.V2.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +10,6 @@ namespace Ideka.BHUDCommon;
 
 public class SkinData : ApiCache<int, Skin>
 {
-    private static readonly Logger _logger = Logger.GetLogger<DyeData>();
-    protected override Logger Logger => _logger;
-
     protected override async Task<IEnumerable<Skin>> ApiGetter(CancellationToken ct)
     {
         var items = new List<Skin>();

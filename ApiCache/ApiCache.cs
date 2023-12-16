@@ -17,7 +17,7 @@ namespace Ideka.BHUDCommon;
 public abstract class ApiCache<TId, TItem> : IDisposable
     where TItem : IIdentifiable<TId>
 {
-    protected abstract Logger Logger { get; }
+    private static readonly Logger Logger = Logger.GetLogger<ApiCache<TId, TItem>>();
 
     private const int Retries = 3;
 

@@ -10,9 +10,6 @@ namespace Ideka.BHUDCommon;
 
 public class MapData : ApiCache<int, Map>
 {
-    private static readonly Logger _logger = Logger.GetLogger<DyeData>();
-    protected override Logger Logger => _logger;
-
     public Map? Current { get; private set; }
 
     public MapData()
