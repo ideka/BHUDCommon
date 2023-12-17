@@ -26,10 +26,13 @@ public abstract class ApiCache<TId, TItem> : IDisposable
     private readonly CancellationTokenSource _cts = new();
     private readonly JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings()
     {
+        TypeNameHandling = TypeNameHandling.Auto,
         Converters =
         {
             new RectangleConverter(),
             new Coordinates2Converter(),
+            new ApiEnumConverter(),
+            new RenderUrlConverter(),
         },
     };
 
