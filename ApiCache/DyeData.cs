@@ -17,7 +17,9 @@ public class DyeData : ApiCache<int, Dye>
             => Math.Min(a, Math.Min(b, Math.Min(c, d)));
 
         static int colorDiff(Color color, IReadOnlyList<int> other)
-            => Math.Abs(color.R - other[0]) + Math.Abs(color.G - other[1]) + Math.Abs(color.B - other[2]);
+            => other == null || other.Count < 3
+                ? int.MaxValue
+                : Math.Abs(color.R - other[0]) + Math.Abs(color.G - other[1]) + Math.Abs(color.B - other[2]);
 
         return Items.Values
             .Select(x => (

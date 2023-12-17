@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Blish_HUD.GameService;
 using File = System.IO.File;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Ideka.BHUDCommon;
 
@@ -25,32 +24,39 @@ public abstract class ApiCache<TId, TItem> : IDisposable
     public IReadOnlyDictionary<TId, TItem> Items => _items;
 
     private readonly CancellationTokenSource _cts = new();
+    private readonly JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings()
+    {
+        Converters =
+        {
+            new RectangleConverter(),
+            new Coordinates2Converter(),
+        },
+    };
 
     private class CacheFile
     {
         public int BuildId { get; set; }
-        public Dictionary<TId, TItem> Data { get; set; } = new();
+        public Dictionary<TId, TItem> Items { get; set; } = new();
     }
 
-    public async Task StartLoad(string cacheFilePath, ContentsManager? contentsManager, string? builtinFilePath)
+    public async Task<Task> StartLoad(string cacheFilePath, ContentsManager? contentsManager, string? builtinFilePath)
     {
-        if (!File.Exists(cacheFilePath) && contentsManager != null && builtinFilePath != null)
-        {
-            using var file = contentsManager.GetFileStream(builtinFilePath);
-            using var reader = new StreamReader(file);
-            Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
-            File.WriteAllText(cacheFilePath, await reader.ReadToEndAsync());
-        }
-
         CacheFile? cache = null;
+
         if (File.Exists(cacheFilePath))
         {
             Logger.Info("Found cache file, loading.");
             try
             {
-                cache = JsonSerializer.Deserialize<CacheFile>(File.ReadAllText(cacheFilePath));
-                if (cache == null)
-                    Logger.Warn("Cache load resulted in null.");
+                cache = JsonConvert.DeserializeObject<CacheFile>(
+                    File.ReadAllText(cacheFilePath),
+                    _jsonSerializerSettings);
+
+                if (cache == null || !cache.Items.Any())
+                {
+                    Logger.Warn("Cache load resulted empty or null.");
+                    cache = null;
+                }
             }
             catch (Exception e)
             {
@@ -58,8 +64,31 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             }
         }
 
-        _items = cache?.Data ?? new();
-        _ = LoadData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
+        if ((cache?.Items.Any() != true) && contentsManager != null && builtinFilePath != null)
+        {
+            Logger.Info("Loading builtin cache file.");
+            try
+            {
+                using var file = contentsManager.GetFileStream(builtinFilePath);
+                using var reader = new StreamReader(file);
+                cache = JsonConvert.DeserializeObject<CacheFile>(
+                    await reader.ReadToEndAsync(),
+                    _jsonSerializerSettings);
+
+                if (cache == null || !cache.Items.Any())
+                {
+                    Logger.Warn("Builtin cache load resulted empty or null.");
+                    cache = null;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Warn(e, "Exception when loading builtin cache.");
+            }
+        }
+
+        _items = cache?.Items ?? new();
+        return LoadData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
     }
 
     protected abstract Task<IEnumerable<TItem>> ApiGetter(CancellationToken ct);
@@ -109,8 +138,8 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         File.WriteAllText(cacheFilePath, JsonConvert.SerializeObject(new CacheFile()
         {
             BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : cachedVersion,
-            Data = _items,
-        }));
+            Items = _items,
+        }, _jsonSerializerSettings));
     }
 
     public virtual void Dispose()
