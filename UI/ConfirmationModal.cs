@@ -1,4 +1,5 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
@@ -45,7 +46,7 @@ public class ConfirmationModal : Container
     private Action _confirmed;
     private Action _canceled;
 
-    public ConfirmationModal(Texture2D background) : base()
+    public ConfirmationModal(AsyncTexture2D background) : base()
     {
         Visible = false;
         ZIndex = int.MaxValue / 10;
