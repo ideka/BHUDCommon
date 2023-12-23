@@ -11,26 +11,29 @@ namespace Ideka.BHUDCommon;
 
 public class DyeData : ApiCache<int, Dye>
 {
-    public IEnumerable<(int diff, Dye dye)> BestMatches(Color color)
+    public IEnumerable<(Dye dye, float match)> BestMatches(Color color)
     {
-        static int min(int a, int b, int c, int d)
-            => Math.Min(a, Math.Min(b, Math.Min(c, d)));
+        static float max(float a, float b, float c, float d)
+            => Math.Max(a, Math.Max(b, Math.Max(c, d)));
 
-        static int colorDiff(Color color, IReadOnlyList<int> other)
+        static float colorMatch(Color color, IReadOnlyList<int> other)
             => other == null || other.Count < 3
-                ? int.MaxValue
-                : Math.Abs(color.R - other[0]) + Math.Abs(color.G - other[1]) + Math.Abs(color.B - other[2]);
+                ? 0
+                : 1 - (
+                    Math.Abs(color.R - other[0]) / 255f +
+                    Math.Abs(color.G - other[1]) / 255f +
+                    Math.Abs(color.B - other[2]) / 255f) / 3;
 
         return Items.Values
             .Select(x => (
-                diff:
-                    min(
-                        colorDiff(color, x.Cloth.Rgb),
-                        colorDiff(color, x.Metal.Rgb),
-                        colorDiff(color, x.Leather.Rgb),
-                        colorDiff(color, x.Fur.Rgb)),
-                dye: x))
-            .OrderBy(x => x.diff);
+                dye: x,
+                match:
+                    max(
+                        colorMatch(color, x.Cloth.Rgb),
+                        colorMatch(color, x.Metal.Rgb),
+                        colorMatch(color, x.Leather.Rgb),
+                        colorMatch(color, x.Fur.Rgb))))
+            .OrderByDescending(x => x.match);
     }
 
     protected override async Task<IEnumerable<Dye>> ApiGetter(CancellationToken ct)
