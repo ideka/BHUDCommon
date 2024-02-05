@@ -50,7 +50,7 @@ public class ScreenMap : Control
         }
     }
 
-    private readonly List<IMapEntity> _entities = new();
+    private readonly List<IMapEntity> _entities = [];
     private readonly MapData _mapData;
     private readonly ScreenMapBounds _mapBounds;
 

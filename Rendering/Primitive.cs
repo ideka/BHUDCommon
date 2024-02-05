@@ -44,13 +44,13 @@ public static class PrimitiveExtensions
     }
 }
 
-public class Primitive
+public class Primitive(IEnumerable<Vector3> points)
 {
-    public List<Vector3> Points { get; }
+    public List<Vector3> Points { get; } = points.ToList();
 
     public class ScreenPrimitive
     {
-        public List<List<Vector2>> Points { get; } = new List<List<Vector2>>();
+        public List<List<Vector2>> Points { get; } = [];
         public float Depth { get; }
         private float MaxDepth => Gw2Mumble.PlayerCamera.FarPlaneRenderDistance;
 
@@ -63,7 +63,7 @@ public class Primitive
             {
                 if (list == null)
                 {
-                    list = new List<Vector2>();
+                    list = [];
                     Points.Add(list);
                 }
 
@@ -91,11 +91,6 @@ public class Primitive
             => new Vector2(
                 (v.X / v.Z + 1) / 2 * Graphics.SpriteScreen.Width,
                 (1 - v.Y / v.Z) / 2 * Graphics.SpriteScreen.Height);
-    }
-
-    public Primitive(IEnumerable<Vector3> points)
-    {
-        Points = points.ToList();
     }
 
     public Primitive(params Vector3[] points) : this(points.AsEnumerable())
