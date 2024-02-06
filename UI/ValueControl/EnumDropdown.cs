@@ -9,7 +9,7 @@ public class EnumDropdown<TEnum> : ValueControl<TEnum, string, Dropdown>
     where TEnum : struct, Enum
 {
     private readonly Func<TEnum, string?> _describe;
-    private readonly Dictionary<string, TEnum> _descValue = new();
+    private readonly Dictionary<string, TEnum> _descValue = [];
 
     public EnumDropdown() : this(null, default)
     {

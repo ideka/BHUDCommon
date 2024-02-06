@@ -4,7 +4,7 @@ using System;
 
 namespace Ideka.BHUDCommon;
 
-public class ButtonBox<TValue> : ValueControl<TValue, TValue, StandardButton>
+public class ButtonBox<TValue>(TValue start) : ValueControl<TValue, TValue, StandardButton>(start)
 {
     public string ButtonText
     {
@@ -16,10 +16,6 @@ public class ButtonBox<TValue> : ValueControl<TValue, TValue, StandardButton>
     {
         add => Control.Click += value;
         remove => Control.Click -= value;
-    }
-
-    public ButtonBox(TValue start) : base(start)
-    {
     }
 
     protected override bool TryMakeValue(TValue innerValue, out TValue value)

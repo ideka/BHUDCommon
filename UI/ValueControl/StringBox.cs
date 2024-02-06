@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Ideka.BHUDCommon;
 
-public class StringBox : ValueTextBox<string>
+public class StringBox(Func<string, string>? validator = null) : ValueTextBox<string>("")
 {
     private bool _hideValue;
     public bool HideValue
@@ -18,15 +18,10 @@ public class StringBox : ValueTextBox<string>
         }
     }
 
-    private readonly Func<string, string> _validator;
+    private readonly Func<string, string> _validator = validator ?? (s => s);
 
     public StringBox() : this(null)
     {
-    }
-
-    public StringBox(Func<string, string>? validator = null) : base("")
-    {
-        _validator = validator ?? (s => s);
     }
 
     protected override bool TryMakeValue(string innerValue, out string value)

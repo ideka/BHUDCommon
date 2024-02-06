@@ -102,18 +102,17 @@ public abstract class ValueControl : Container
     }
 }
 
-public abstract class ValueControl<TValue, TInnerValue, TControl> : ValueControl
+public abstract class ValueControl<TValue, TInnerValue, TControl>(TValue sValue) : ValueControl(new TControl())
     where TControl : Control, new()
 {
-    private TValue _value;
     public TValue Value
     {
-        get => _value;
+        get => sValue;
         set
         {
             if (!TryReflectValue(ref value))
                 return;
-            _value = value;
+            sValue = value;
         }
     }
 
@@ -124,11 +123,6 @@ public abstract class ValueControl<TValue, TInnerValue, TControl> : ValueControl
     public event Action<TValue>? ValueCommitted;
 
     protected bool MouseOverControl => Control.MouseOver;
-
-    public ValueControl(TValue start) : base(new TControl())
-    {
-        _value = start;
-    }
 
     public void CommitValue(TValue value)
     {

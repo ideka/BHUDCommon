@@ -20,7 +20,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
 
     private const int Retries = 3;
 
-    private Dictionary<TId, TItem> _items = new();
+    private Dictionary<TId, TItem> _items = [];
     public IReadOnlyDictionary<TId, TItem> Items => _items;
 
     private readonly CancellationTokenSource _cts = new();
@@ -39,7 +39,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
     private class CacheFile
     {
         public int BuildId { get; set; }
-        public Dictionary<TId, TItem> Items { get; set; } = new();
+        public Dictionary<TId, TItem> Items { get; set; } = [];
     }
 
     public async Task<Task> StartLoad(string cacheFilePath, ContentsManager? contentsManager, string? builtinFilePath)
@@ -90,7 +90,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             }
         }
 
-        _items = cache?.Items ?? new();
+        _items = cache?.Items ?? [];
         return LoadData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
     }
 

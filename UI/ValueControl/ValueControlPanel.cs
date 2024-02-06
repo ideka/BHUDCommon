@@ -5,12 +5,7 @@ namespace Ideka.BHUDCommon;
 
 public class ValueControlPanel : FlowPanel
 {
-    private readonly List<ValueControl> _controls;
-
-    public ValueControlPanel() : base()
-    {
-        _controls = new List<ValueControl>();
-    }
+    private readonly List<ValueControl> _controls = [];
 
     public T Add<T>(T control) where T : ValueControl
     {
