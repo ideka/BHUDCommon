@@ -118,29 +118,30 @@ public class Primitive(IEnumerable<Vector3> points)
     public static Vector3 ToScreen(Vector3 point)
         => Vector3.Transform(point, Gw2Mumble.PlayerCamera.WorldViewProjection);
 
-    public static Primitive HorizontalCircle(float radius, int sides)
+    public static Vector3[] To3D(Vector2[] points2d, float xx, float xy, float xz, float yx, float yy, float yz)
     {
-        var points2d = SpriteBatchExtensions.CreateCircle(radius, sides);
-        var points = new Vector3[sides];
-        for (var i = 0; i < sides; i++)
+        var points = new Vector3[points2d.Length];
+        for (var i = 0; i < points2d.Length; i++)
         {
             var src = points2d[i];
-            points[i] = new Vector3(src.X, src.Y, 0);
+            points[i] = new Vector3(
+                src.X * xx + src.Y * yx,
+                src.X * xy + src.Y * yy,
+                src.X * xz + src.Y * yz);
         }
 
-        return new Primitive(points);
+        return points;
     }
+
+    public static Primitive HorizontalArc(float rx, float ry, float start, float extents, int sides)
+        => new Primitive(To3D(SpriteBatchExtensions.CreateArc(rx, ry, start, extents, sides), 1, 0, 0, 0, 1, 0));
+
+    public static Primitive HorizontalCircle(float radius, int sides)
+        => HorizontalArc(radius, radius, 0, 2, sides);
 
     public static Primitive VerticalArc(float rx, float ry, float start, float extents, int sides)
-    {
-        var points2d = SpriteBatchExtensions.CreateArc(rx, ry, start, extents, sides);
-        var points = new Vector3[sides];
-        for (var i = 0; i < sides; i++)
-        {
-            var src = points2d[i];
-            points[i] = new Vector3(src.X, 0, src.Y);
-        }
+        => new Primitive(To3D(SpriteBatchExtensions.CreateArc(rx, ry, start, extents, sides), 1, 0, 0, 0, 0, 1));
 
-        return new Primitive(points);
-    }
+    public static Primitive VerticalCircle(float radius, int sides)
+        => VerticalArc(radius, radius, 0, 2, sides);
 }
