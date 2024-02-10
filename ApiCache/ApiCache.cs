@@ -1,5 +1,6 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Modules.Managers;
+using Gw2Sharp.WebApi;
 using Gw2Sharp.WebApi.V2.Models;
 using Newtonsoft.Json;
 using System;
@@ -12,6 +13,15 @@ using static Blish_HUD.GameService;
 using File = System.IO.File;
 
 namespace Ideka.BHUDCommon;
+
+public static class ApiCache
+{
+    public static int? TryExtractAssetId(RenderUrl? url)
+        => TryExtractAssetId(url?.ToString());
+
+    public static int? TryExtractAssetId(string? url)
+        => url != null && int.TryParse(url.Split('/').Last().Split('.').First(), out int id) ? id : null;
+}
 
 public abstract class ApiCache<TId, TItem> : IDisposable
     where TItem : IIdentifiable<TId>
