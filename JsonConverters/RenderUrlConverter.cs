@@ -20,7 +20,7 @@ public class RenderUrlConverter : JsonConverter<RenderUrl>
 
         var constructorInfo = objectType.GetConstructor(
             BindingFlags.NonPublic | BindingFlags.Instance, null,
-            new[] { typeof(IGw2Client), typeof(string), typeof(string) }, null)
+            [typeof(IGw2Client), typeof(string), typeof(string)], null)
             ?? throw new JsonSerializationException($"No matching constructor found for type {objectType}");
 
         return i.Url == null 

@@ -29,9 +29,9 @@ public class ApiEnumConverter : JsonConverter
         var valueType = objectType.GetGenericArguments()[0];
 
         var actualValue = serializer.Deserialize(reader, valueType);
-        var constructorInfo = objectType.GetConstructor(new[] { valueType })
+        var constructorInfo = objectType.GetConstructor([valueType])
             ?? throw new JsonSerializationException($"No matching constructor found for type {objectType}");
 
-        return constructorInfo.Invoke(new[] { actualValue });
+        return constructorInfo.Invoke([actualValue]);
     }
 }
