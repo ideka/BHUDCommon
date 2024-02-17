@@ -44,6 +44,8 @@ public abstract class ValueControl : Container
         set => Control.Enabled = value;
     }
 
+    public string? LabelBasicTooltipText { set => _label.BasicTooltipText = value; }
+
     public string? AllBasicTooltipText
     {
         set => Control.BasicTooltipText =
