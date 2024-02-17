@@ -1,6 +1,4 @@
-﻿using Blish_HUD.Controls;
-using Blish_HUD.Input;
-using Ideka.BHUDCommon;
+﻿using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -71,7 +69,7 @@ public class IntBox : ValueTextBox<int>
 
     protected override bool TryMakeText(ref int value, out string text)
     {
-        value = Math.Max(Math.Min(value, MaxValue), MinValue);
+        value = Math.Min(Math.Max(value, MinValue), MaxValue);
         text = $"{value}";
         return true;
     }
@@ -80,7 +78,7 @@ public class IntBox : ValueTextBox<int>
     {
         if (!int.TryParse(innerValue, out value))
             return false;
-        value = Math.Max(Math.Min(value, MaxValue), MinValue);
+        value = Math.Min(Math.Max(value, MinValue), MaxValue);
         return true;
     }
 
@@ -112,7 +110,7 @@ public class IntBox : ValueTextBox<int>
 
     private bool HandleHidden()
     {
-        var isHidden = !this.IsVisible();
+        var isHidden = !Enabled || !this.IsVisible();
         if (isHidden && _dragStart != null)
             DragEnd(false);
         return isHidden;

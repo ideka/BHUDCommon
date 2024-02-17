@@ -1,5 +1,4 @@
 ﻿using Blish_HUD.Input;
-using Ideka.BHUDCommon;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -23,9 +22,23 @@ public class FloatBox : ValueTextBox<float>
         {
             if (_minValue == value)
                 return;
-            _minValue = value;
+            _minValue = Math.Min(value, MaxValue);
             if (Value < MinValue)
                 CommitValue(MinValue);
+        }
+    }
+
+    private float _maxValue = float.MaxValue;
+    public float MaxValue
+    {
+        get => _maxValue;
+        set
+        {
+            if (_maxValue == value)
+                return;
+            _maxValue = Math.Max(value, MinValue);
+            if (Value > MaxValue)
+                CommitValue(MaxValue);
         }
     }
 
@@ -56,7 +69,7 @@ public class FloatBox : ValueTextBox<float>
 
     protected override bool TryMakeText(ref float value, out string text)
     {
-        value = Math.Max(value, MinValue);
+        value = Math.Min(Math.Max(value, MinValue), MaxValue);
         text = $"{value}";
         return true;
     }
@@ -65,7 +78,7 @@ public class FloatBox : ValueTextBox<float>
     {
         if (!float.TryParse(innerValue, out value))
             return false;
-        value = Math.Max(value, MinValue);
+        value = Math.Min(Math.Max(value, MinValue), MaxValue);
         return true;
     }
 
@@ -97,7 +110,7 @@ public class FloatBox : ValueTextBox<float>
 
     private bool HandleHidden()
     {
-        var isHidden = !this.IsVisible();
+        var isHidden = !Enabled || !this.IsVisible();
         if (isHidden && _dragStart != null)
             DragEnd(false);
         return isHidden;
@@ -123,9 +136,11 @@ public class FloatBox : ValueTextBox<float>
             (HoldingAlt ? .1f : 1) *
             (HoldingShift ? 10 : 1);
 
-        // Don't go under MinValue
+        // Don't go under MinValue or over MaxValue
         if (Value + DragValue() < MinValue)
             _dragAmount = new Vector2((MinValue - Value) / Scale / XScale, 0);
+        else if (Value + DragValue() > MaxValue)
+            _dragAmount = new Vector2((MaxValue - Value) / Scale / XScale, 0);
 
         Mouse.SetPosition(start.X, start.Y);
 
