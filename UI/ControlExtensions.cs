@@ -35,7 +35,7 @@ public static class ControlExtensions
     public static void WidthFillLeft(this Control control, int spacing = 0)
     {
         control.Width = control.Right - spacing;
-        control.Left = 0;
+        control.Left = spacing;
     }
 
     public static void HeightFillDown(this Control control, int spacing = 0)
@@ -44,7 +44,7 @@ public static class ControlExtensions
     public static void HeightFillUp(this Control control, int spacing = 0)
     {
         control.Height = control.Bottom - spacing;
-        control.Top = 0;
+        control.Top = spacing;
     }
 
     public static void CenterWith(this Control control, Control other)
