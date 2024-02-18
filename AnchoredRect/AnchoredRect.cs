@@ -48,6 +48,9 @@ public class AnchoredRect
     private readonly List<AnchoredRect> _children = [];
     public IReadOnlyList<AnchoredRect> Children => _children;
 
+    public int IndexOfChild(AnchoredRect child)
+        => _children.IndexOf(child);
+
     public T InsertChild<T>(int index, T child) where T : AnchoredRect
     {
         Debug.Assert(child.Parent == null);
