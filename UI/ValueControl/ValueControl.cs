@@ -38,6 +38,8 @@ public abstract class ValueControl : Container
         }
     }
 
+    public int ControlRight => Control.Right;
+
     public bool ControlEnabled
     {
         get => Control.Enabled;
