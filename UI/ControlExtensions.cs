@@ -83,6 +83,18 @@ public static class ControlExtensions
         container.Height = height + diff;
     }
 
+    public static void MatchWidthToRight(this Container container, Control target, int spacing = 0)
+    {
+        if (container.ContentRegion.Width != target.Right + spacing)
+            container.SetContentRegionWidth(target.Right + spacing);
+    }
+
+    public static void MatchHeightToBottom(this Container container, Control target, int spacing = 0)
+    {
+        if (container.ContentRegion.Height != target.Bottom + spacing)
+            container.SetContentRegionHeight(target.Bottom + spacing);
+    }
+
     public static bool IsVisible(this Control control)
     {
         while (control != GameService.Graphics.SpriteScreen)
