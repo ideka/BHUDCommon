@@ -14,6 +14,8 @@ public class IntBox : ValueTextBox<int>
     private static bool HoldingShift
         => Input.Keyboard.KeysDown.Contains(Keys.LeftShift) || Input.Keyboard.KeysDown.Contains(Keys.RightShift);
 
+    public bool DraggingCommits { get; set; } = false;
+
     private int _minValue = int.MinValue;
     public int MinValue
     {
@@ -50,6 +52,7 @@ public class IntBox : ValueTextBox<int>
 
     private readonly EscBlockWindow _escBlock;
     private Point? _dragStart = null;
+    private int _dragStartValue;
     private Vector2 _dragAmount = Vector2.Zero;
 
     public IntBox() : base(0)
@@ -90,6 +93,7 @@ public class IntBox : ValueTextBox<int>
 
         _dragStart = Input.Mouse.PositionRaw;
         _dragAmount = Vector2.Zero;
+        _dragStartValue = Value;
 
         _dragCancel.Enabled = _dragCancel.BlockSequenceFromGw2 = true;
     }
@@ -103,7 +107,7 @@ public class IntBox : ValueTextBox<int>
         UnsetTempValue();
 
         if (commit)
-            CommitValue(Value + DragValue());
+            CommitValue(_dragStartValue + DragValue());
 
         _dragAmount = Vector2.Zero;
     }
@@ -137,14 +141,17 @@ public class IntBox : ValueTextBox<int>
             (HoldingShift ? 10 : 1);
 
         // Don't go under MinValue or over MaxValue
-        if (Value + DragValue() < MinValue)
-            _dragAmount = new Vector2((MinValue - Value) / Scale / XScale, 0);
-        else if (Value + DragValue() > MaxValue)
-            _dragAmount = new Vector2((MaxValue - Value) / Scale / XScale, 0);
+        if (_dragStartValue + DragValue() < MinValue)
+            _dragAmount = new Vector2((MinValue - _dragStartValue) / Scale / XScale, 0);
+        else if (_dragStartValue + DragValue() > MaxValue)
+            _dragAmount = new Vector2((MaxValue - _dragStartValue) / Scale / XScale, 0);
 
         Mouse.SetPosition(start.X, start.Y);
 
-        SetTempValue(Value + DragValue(), true);
+        if (DraggingCommits)
+            CommitValue(_dragStartValue + DragValue());
+        else
+            SetTempValue(_dragStartValue + DragValue(), true);
     }
 
     private new void LeftMouseButtonReleased(object sender, MouseEventArgs e)
