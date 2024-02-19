@@ -1,19 +1,29 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Ideka.BHUDCommon;
 
-public class EnumSetButton<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>, StandardButton>
+public class EnumSetBox<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>, EnumSetBox<TEnum>.Inner>
     where TEnum : struct, Enum
 {
     private readonly Func<TEnum, string?> _describe;
     private readonly Dictionary<string, TEnum> _descValue = [];
     private readonly ContextMenuStrip _menu;
 
-    public EnumSetButton(Func<TEnum, string?>? describe = null, HashSet<TEnum>? start = null) : base(start ?? [])
+    public class Inner : TextBox
+    {
+        public new event Action? LeftMouseButtonPressed;
+        public new event Action? Click;
+
+        protected override void OnLeftMouseButtonPressed(MouseEventArgs e) => LeftMouseButtonPressed?.Invoke();
+        protected override void OnClick(MouseEventArgs e) => Click?.Invoke();
+    }
+
+    public EnumSetBox(Func<TEnum, string?>? describe = null, HashSet<TEnum>? start = null) : base(start ?? [])
     {
         _describe = describe ?? (v => Enum.GetName(typeof(TEnum), v));
 
@@ -47,6 +57,7 @@ public class EnumSetButton<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>,
 
         {
             TimeSpan hiddenAt = TimeSpan.Zero;
+            bool invalidateNext = false;
             _menu.Hidden += delegate
             {
                 hiddenAt = GameService.Overlay.CurrentGameTime.TotalGameTime;
@@ -56,7 +67,17 @@ public class EnumSetButton<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>,
             {
                 // Hack so the button can act as a toggle.
                 if (GameService.Overlay.CurrentGameTime.TotalGameTime == hiddenAt)
+                    invalidateNext = true;
+            };
+
+            Control.Click += delegate
+            {
+                if (invalidateNext)
+                {
+                    invalidateNext = false;
                     return;
+                }
+
                 _menu.Show(Control);
             };
         }
@@ -70,7 +91,9 @@ public class EnumSetButton<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>,
 
     protected override bool TryReflectValue(ref HashSet<TEnum> value)
     {
-        Control.Text = string.Join(", ", value.Select(_describe));
+        var values = value.Select(_describe);
+        Control.Text = string.Join(", ", values);
+        Control.BasicTooltipText = string.Join("\n", values);
         return true;
     }
 
