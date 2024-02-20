@@ -39,6 +39,9 @@ public class AnchoredRect
     public virtual float SizeDeltaX { get => Anchoring.SizeDeltaX; set => Anchoring.SizeDeltaX = value; }
     public virtual float SizeDeltaY { get => Anchoring.SizeDeltaY; set => Anchoring.SizeDeltaY = value; }
 
+    public Vector2 AbsolutePosition { get; private set; }
+    public Vector2 AbsoluteSize { get; private set; }
+
     public event Action<AnchoredRect>? OnUpdate;
 
     public AnchoredRect? Parent { get; private set; }
@@ -75,6 +78,22 @@ public class AnchoredRect
         if (removed)
             child.Parent = null;
         return removed;
+    }
+
+    public void SetAbsolute(Vector2 position, Vector2 size)
+    {
+        if (Parent == null)
+            return;
+        SizeDelta = size - ((AnchorMax - AnchorMin) * Parent.AbsoluteSize);
+        Position = position - (Parent.AbsolutePosition + Parent.AbsoluteSize * AnchorMin - SizeDelta * Pivot);
+    }
+
+    public void KeepingAbsolute(Action act)
+    {
+        var position = AbsolutePosition;
+        var size = AbsoluteSize;
+        act();
+        SetAbsolute(position, size);
     }
 
     public RectangleF Target(RectangleF container)
@@ -119,6 +138,8 @@ public class AnchoredRect
             return;
 
         rect = Target(rect);
+        AbsolutePosition = rect.Position;
+        AbsoluteSize = rect.Size;
 
         var target = new RectTarget(spriteBatch, control, rect);
 
