@@ -17,7 +17,7 @@ namespace Ideka.BHUDCommon;
 public static class ApiCache
 {
     public static int? TryExtractAssetId(RenderUrl? url)
-        => TryExtractAssetId(url?.ToString());
+        => TryExtractAssetId(url?.Url?.ToString());
 
     public static int? TryExtractAssetId(string? url)
         => url != null && int.TryParse(url.Split('/').Last().Split('.').First(), out int id) ? id : null;
@@ -43,6 +43,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             new Coordinates2Converter(),
             new ApiEnumConverter(),
             new RenderUrlConverter(),
+            new NullableRenderUrlConverter(),
         },
     };
 

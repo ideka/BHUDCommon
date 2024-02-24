@@ -23,14 +23,12 @@ public class RenderUrlConverter : JsonConverter<RenderUrl>
             [typeof(IGw2Client), typeof(string), typeof(string)], null)
             ?? throw new JsonSerializationException($"No matching constructor found for type {objectType}");
 
-        return i.Url == null 
-            ? new RenderUrl()
-            : (RenderUrl)constructorInfo.Invoke(new[] { null, i.Url ?? "", null });
+        return (RenderUrl)constructorInfo.Invoke(new[] { null, i.Url ?? "", null });
     }
 
     public override void WriteJson(JsonWriter writer, RenderUrl value, JsonSerializer serializer)
         => serializer.Serialize(writer, new Intermediate()
         {
-            Url = value.Url?.AbsoluteUri,
+            Url = value.Url.AbsoluteUri,
         });
 }
