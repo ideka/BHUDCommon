@@ -1,4 +1,5 @@
 ﻿using Blish_HUD;
+using Gw2Sharp.WebApi;
 using Gw2Sharp.WebApi.V2.Models;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
@@ -43,9 +44,9 @@ public class MapData : ApiCache<int, Map>
     protected override async Task<IEnumerable<Map>> ApiGetter(CancellationToken ct)
         => await Gw2WebApi.AnonymousConnection.Client.V2.Maps.AllAsync(ct);
 
-    protected override async Task LoadData(int cachedVersion, string cacheFilePath, CancellationToken ct)
+    protected override async Task LoadData(int? cachedVersion, Locale? cachedLocale, string cacheFilePath, CancellationToken ct)
     {
-        await base.LoadData(cachedVersion, cacheFilePath, ct);
+        await base.LoadData(cachedVersion, cachedLocale, cacheFilePath, ct);
         UpdateCurrent();
     }
 

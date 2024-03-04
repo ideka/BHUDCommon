@@ -50,6 +50,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
     private class CacheFile
     {
         public int BuildId { get; set; }
+        public Locale Locale { get; set; }
         public Dictionary<TId, TItem> Items { get; set; } = [];
     }
 
@@ -102,12 +103,13 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         }
 
         _items = cache?.Items ?? [];
-        return LoadData(cache?.BuildId ?? 0, cacheFilePath, _cts.Token);
+        return LoadData(cache?.BuildId, cache?.Locale, cacheFilePath, _cts.Token);
     }
 
     protected abstract Task<IEnumerable<TItem>> ApiGetter(CancellationToken ct);
 
-    protected virtual async Task LoadData(int cachedVersion, string cacheFilePath, CancellationToken ct)
+    protected virtual async Task LoadData(int? cachedVersion, Locale? cachedLocale, string cacheFilePath,
+        CancellationToken ct)
     {
         for (int i = 0; i < 30; i++)
         {
@@ -118,7 +120,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             await Task.Delay(1000);
         }
 
-        if (Gw2Mumble.Info.BuildId == cachedVersion)
+        if (Gw2Mumble.Info.BuildId == cachedVersion && Overlay.UserLocale.Value == cachedLocale)
             return;
 
         IEnumerable<TItem>? items = null;
@@ -151,7 +153,8 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
         File.WriteAllText(cacheFilePath, JsonConvert.SerializeObject(new CacheFile()
         {
-            BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : cachedVersion,
+            BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : (cachedVersion ?? 0),
+            Locale = Overlay.UserLocale.Value,
             Items = _items,
         }, _jsonSerializerSettings));
     }
