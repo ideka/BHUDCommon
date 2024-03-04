@@ -46,12 +46,12 @@ public static class UIOverlay
         return (start, end);
     }
 
-    public static RectangleF GetCastBar()
+    public static RectangleF GetCastbar()
     {
         var scale = ToWindowScale();
         var width = 195 * scale;
         var height = 15 * scale;
-        var bottom = 223 * scale;
+        var bottom = 224 * scale;
         return new RectangleF(
             Graphics.SpriteScreen.AbsoluteBounds.Width * .5f - width / 2,
             Graphics.SpriteScreen.AbsoluteBounds.Height - bottom - height,
