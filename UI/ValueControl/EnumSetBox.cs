@@ -55,7 +55,9 @@ public class EnumSetBox<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>, En
             }
         }
 
+        if (Program.OverlayVersion < new SemVer.Version(1, 1, 2, "0"))
         {
+            // This more complex version breaks in Blish 1.1.2, but it's needed for Blish < 1.1.2
             TimeSpan hiddenAt = TimeSpan.Zero;
             bool invalidateNext = false;
             _menu.Hidden += delegate
@@ -79,6 +81,21 @@ public class EnumSetBox<TEnum> : ValueControl<HashSet<TEnum>, HashSet<TEnum>, En
                 }
 
                 _menu.Show(Control);
+            };
+        }
+        else
+        {
+            TimeSpan hiddenAt = TimeSpan.Zero;
+            _menu.Hidden += delegate
+            {
+                hiddenAt = GameService.Overlay.CurrentGameTime.TotalGameTime;
+            };
+
+            Control.LeftMouseButtonPressed += delegate
+            {
+                // Hack so the button can act as a toggle.
+                if (GameService.Overlay.CurrentGameTime.TotalGameTime != hiddenAt)
+                    _menu.Show(Control);
             };
         }
     }
