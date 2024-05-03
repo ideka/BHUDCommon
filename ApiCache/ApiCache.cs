@@ -54,8 +54,11 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         public Dictionary<TId, TItem> Items { get; set; } = [];
     }
 
-    public async Task<Task> StartLoad(string cacheFilePath, ContentsManager? contentsManager, string? builtinFilePath)
+    public async Task<Task> StartLoad(string cacheFilePath, ContentsManager? contentsManager, string? builtinFilePath,
+        CancellationToken ct = default)
     {
+        ct.Register(_cts.Cancel);
+
         CacheFile? cache = null;
 
         if (File.Exists(cacheFilePath))
@@ -63,9 +66,12 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             Logger.Info("Found cache file, loading.");
             try
             {
+                using var file = File.OpenRead(cacheFilePath);
+                using var reader = new StreamReader(file);
                 cache = JsonConvert.DeserializeObject<CacheFile>(
-                    File.ReadAllText(cacheFilePath),
+                    await reader.ReadToEndAsync(),
                     _jsonSerializerSettings);
+                _cts.Token.ThrowIfCancellationRequested();
 
                 if (cache == null || !cache.Items.Any())
                 {
@@ -89,6 +95,7 @@ public abstract class ApiCache<TId, TItem> : IDisposable
                 cache = JsonConvert.DeserializeObject<CacheFile>(
                     await reader.ReadToEndAsync(),
                     _jsonSerializerSettings);
+                _cts.Token.ThrowIfCancellationRequested();
 
                 if (cache == null || !cache.Items.Any())
                 {
@@ -116,7 +123,6 @@ public abstract class ApiCache<TId, TItem> : IDisposable
             if (Gw2Mumble.Info.BuildId != 0)
                 break;
 
-            Logger.Warn("Waiting for mumble to update...");
             await Task.Delay(1000);
         }
 
@@ -145,13 +151,15 @@ public abstract class ApiCache<TId, TItem> : IDisposable
         if (items == null)
         {
             Logger.Warn($"Max retries exeeded. Skipping {typeof(TItem).FullName} data update.");
-            return;  // We failed to load data.
+            return;  // We failed to load data
         }
 
         _items = items.ToDictionary(i => i.Id);
 
         Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath));
-        File.WriteAllText(cacheFilePath, JsonConvert.SerializeObject(new CacheFile()
+        using var file = File.OpenWrite(cacheFilePath);
+        using var writer = new StreamWriter(file);
+        await writer.WriteAsync(JsonConvert.SerializeObject(new CacheFile()
         {
             BuildId = Gw2Mumble.Info.BuildId != 0 ? Gw2Mumble.Info.BuildId : (cachedVersion ?? 0),
             Locale = Overlay.UserLocale.Value,

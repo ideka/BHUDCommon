@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove=".git" />
     <None Remove=".gitignore" />
     <None Remove="COPYING" />
   </ItemGroup>
