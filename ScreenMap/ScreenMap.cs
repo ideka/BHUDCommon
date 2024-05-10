@@ -60,7 +60,7 @@ public class ScreenMap : Control
         _mapBounds = new ScreenMapBounds(_mapData);
     }
 
-    protected override CaptureType CapturesInput() => CaptureType.None;
+    protected override CaptureType CapturesInput() => CaptureType.DoNotBlock;
 
     public void AddEntity(IMapEntity entity)
         => _entities.Add(entity);
