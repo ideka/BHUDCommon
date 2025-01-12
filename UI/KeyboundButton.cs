@@ -18,7 +18,7 @@ public class KeyboundButton : StandardButton
         _keybind.Activated += delegate
         {
             if (Enabled)
-                TriggerMouseEvent(MouseEventType.LeftMouseButtonReleased);
+                OnClick(new MouseEventArgs(MouseEventType.LeftMouseButtonReleased, false));
         };
         BasicTooltipText = _keybind.GetBindingDisplayText();
         KeybindEnabled = true;
