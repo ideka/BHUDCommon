@@ -91,15 +91,16 @@ public static class SpriteBatchExtensions
         spriteBatch.DrawLine(center, rectangle.Top, center, rectangle.Bottom, color, rectangle.Width, layerDepth);
     }
 
-    const float SideLength = 3;
-
     public static int GetSidesFor(Vector2 radii, double amplitude)
         => GetSidesFor(Math.Max(radii.X, radii.Y), amplitude);
 
-    // TODO: Find a better alternative to this
     public static int GetSidesFor(float radius, double amplitude)
-        => Math.Max(3, (int)Math.Ceiling(Math.Abs(
-            amplitude * MathUtils.AngleToRad / Math.Acos(1 - MathUtils.Squared(SideLength) / MathUtils.Squared(radius) / 2))));
+    {
+        // Lower factor = more segments
+        const float Factor = 0.5f;
+        return Math.Max(3, (int)Math.Ceiling(Math.Abs(
+            amplitude * MathUtils.AngleToRad / Math.Acos(1 - Factor / radius))));
+    }
 
     public static void DrawArc(this SpriteBatch spriteBatch, Vector2 center,
         Vector2 radii, double start, double extents, int sides,
